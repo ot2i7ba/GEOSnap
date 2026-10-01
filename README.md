@@ -49,17 +49,16 @@ My first answer to that was a pair of small Plotly scripts: UFEDMapper drew one 
 - **Works offline**: the map embeds everything it needs. Online map tiles and place lookups are on by default and can be switched off completely.
 
 ## Screenshots
-
 <p align="center">
+  <img src="screenshots/tui.png" alt="GEOSnap – The terminal interface" width="32%" />
   <img src="screenshots/overview.png" alt="GEOSnap – Several sources on one map" width="32%" />
   <img src="screenshots/timeline.png" alt="GEOSnap – The timeline below the map" width="32%" />
-  <img src="screenshots/matrix.png" alt="GEOSnap – The presence matrix" width="32%" />
 </p>
 
 <p align="center">
+  <img src="screenshots/matrix.png" alt="GEOSnap – The presence matrix" width="32%" />
   <img src="screenshots/crystal-ball.png" alt="GEOSnap – The crystal ball" width="32%" />
   <img src="screenshots/speed.png" alt="GEOSnap – The speed tool" width="32%" />
-  <img src="screenshots/tui.png" alt="GEOSnap – The terminal interface" width="32%" />
 </p>
 
 All screenshots show invented sample data.
