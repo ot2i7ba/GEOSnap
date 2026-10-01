@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2026 ot2i7ba
+  https://github.com/ot2i7ba/
+  This code is licensed under the MIT License (see LICENSE for details).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+__LEAFLET_CSS__
+</style>
+<style>
+__MAP_CSS__
+</style>
+</head>
+<body>
+<div id="unsupported-browser" hidden>This map needs a current browser: Microsoft Edge, Google Chrome, Chromium, Brave or Mozilla Firefox. Internet Explorer and other old browsers cannot show it. The project files next to this map (CSV, GPX, KML, analysis.json, metadata.json) can still be used.</div>
+<script>
+// Runs before everything else and uses ES3 only, so that Internet Explorer reaches it.
+(function () {
+  var supported = !!(window.fetch && window.Promise && window.CSS && window.CSS.supports &&
+    window.CSS.supports("--geosnap-probe", "0") && document.documentElement.closest);
+  if (!supported) {
+    window.GEOSNAP_UNSUPPORTED = true;
+    document.getElementById("unsupported-browser").removeAttribute("hidden");
+    document.body.className += " unsupported";
+  }
+})();
+</script>
+<div id="print-header"></div>
+<div id="toolbar">
+  <div class="toolbar-row">
+    <div id="title-block" class="toolbar-group">
+      <strong id="project-name"></strong>
+      <span id="meta"></span>
+    </div>
+    <div id="filter-block" class="toolbar-group">
+      <span class="datetime-control" id="filter-from" data-label="From" data-feature="time" data-tip="Start of the shown time range (display zone)"></span>
+      <span class="datetime-control" id="filter-to" data-label="To" data-feature="time" data-tip="End of the shown time range (display zone)"></span>
+      <button id="filter-reset" type="button" data-feature="time" data-tip="Show the full time span and switch the time cursor off">Reset</button>
+    </div>
+    <div class="toolbar-group">
+      <label data-tip="Hide points with a worse accuracy (map only)">Hide points with ± above <input type="range" id="accuracy-filter" min="0" max="100" value="100"> <span id="accuracy-filter-value">all</span></label>
+      <label data-tip="Fill points from oldest (blue) to newest (red)"><input type="checkbox" id="colour-by-time" data-feature="time"> colour by time</label>
+    </div>
+    <div class="toolbar-group">
+      <span id="status" class="status-pill"></span>
+      <span id="cursor-position" data-tip="Position under the mouse pointer"></span>
+    </div>
+  </div>
+  <div class="toolbar-row">
+    <div id="tools-block" class="toolbar-group">
+      <span id="transport" data-feature="time">
+        <button id="time-prev" type="button" class="icon-button" data-tip="Time cursor to the previous report" aria-label="Previous point"></button>
+        <button id="time-play" type="button" class="icon-button" data-tip="Play the time cursor forward" aria-label="Play"></button>
+        <button id="time-pause" type="button" class="icon-button" data-tip="Pause the time cursor where it is" aria-label="Pause"></button>
+        <button id="time-stop" type="button" class="icon-button" data-tip="Switch the time cursor off" aria-label="Stop"></button>
+        <button id="time-next" type="button" class="icon-button" data-tip="Time cursor to the next report" aria-label="Next point"></button>
+      </span>
+      <input type="range" id="time-cursor" min="0" max="1000" value="0" data-feature="time" data-tip="Time cursor: show reports up to this moment" aria-label="Time cursor">
+      <span id="time-cursor-value" class="time-readout">off</span>
+      <select id="time-speed" data-feature="time" data-tip="Time in the data per real second while playing" aria-label="Playback speed"><option value="60">1 min/s</option><option value="600" selected>10 min/s</option><option value="3600">1 h/s</option><option value="21600">6 h/s</option><option value="86400">1 d/s</option></select>
+      <label data-tip="Minutes of track highlighted behind the cursor">Trail <input type="number" id="trail-minutes" min="1" max="1440" value="60" data-feature="time"> min</label>
+      <label data-tip="Keep the newest current position in view"><input type="checkbox" id="time-follow" checked data-feature="time"> Follow</label>
+    </div>
+    <div id="view-block" class="toolbar-group">
+      <span>View</span>
+      <label data-tip="Legend of the symbols and colours (bottom left)"><input type="checkbox" id="view-legend"> Legend</label>
+      <label data-tip="Layer control (top right)"><input type="checkbox" id="view-layers" checked> Layers</label>
+      <label data-tip="Places window: embedded places and surroundings checks"><input type="checkbox" id="view-places"> Places</label>
+      <label data-tip="Sources window: show, hide and recolour sources"><input type="checkbox" id="view-sources"> Sources</label>
+      <label data-tip="Timeline panel below the map"><input type="checkbox" id="view-timeline" data-feature="time"> Timeline</label>
+      <label id="view-matrix-option" data-tip="Presence matrix: visits per place and source"><input type="checkbox" id="view-matrix" data-feature="matrix"> Matrix</label>
+    </div>
+    <div class="toolbar-group">
+      <label data-tip="Base map (view choice, not recorded)">Map style <select id="map-style"></select></label>
+    </div>
+    <div class="toolbar-group">
+      <button id="crystal-button" type="button" data-feature="crystal" data-tip="Crystal ball: estimated search area from the last known position">Crystal</button>
+      <button id="speed-button" type="button" data-feature="time" data-tip="Speed tool: click two records of one source to get the figures between them" aria-pressed="false">Speed</button>
+      <button id="briefing-toggle" type="button" data-tip="Briefing panel: sources, stays, gaps, provenance">Briefing</button>
+      <button id="help-button" type="button" data-tip="Help window">Help</button>
+    </div>
+    <div class="toolbar-group">
+      <button id="print-button" type="button" data-tip="Print the map with a provenance header">Print</button>
+      <button id="export-png" type="button" data-tip="Save the map view as PNG (derived, not recorded)">PNG</button>
+      <button id="export-csv" type="button" data-tip="Save the shown records as CSV (derived, not recorded)">CSV</button>
+      <button id="export-geojson" type="button" data-tip="Save the shown records as GeoJSON (derived, not recorded)">GeoJSON</button>
+      <button id="export-gpx" type="button" data-tip="Save the shown records as GPX (derived, not recorded)">GPX</button>
+    </div>
+  </div>
+</div>
+<div id="workspace">
+  <div id="map-area">
+    <div id="map"></div>
+    <div id="places-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Places</strong><button type="button" class="window-close" id="places-close" data-tip="Close the Places window">×</button></div>
+      <div id="surroundings">
+        <div class="surroundings-row"><strong>Check surroundings</strong><label>Profile <select id="places-profile" data-tip="Preselects the categories below; you can still change the ticks"></select></label></div>
+        <div id="surroundings-target">No centre yet: use "Check surroundings" in a popup on the map, or "Check a point on the map…".</div>
+        <div class="surroundings-row">
+          <label data-tip="Radius around the centre to check, in metres">Radius <input type="number" id="surroundings-radius" min="50" max="20000"> m</label>
+          <button type="button" id="surroundings-run" data-tip="Check the chosen centre with the ticked categories">Check</button>
+          <button type="button" id="surroundings-pick" data-tip="Take the next click on the map as the centre">Check a point on the map…</button>
+        </div>
+        <div class="surroundings-row">
+          <button type="button" id="surroundings-route" data-feature="route_shown" data-tip="Check a corridor along the shown route of one source">Check along the shown route</button>
+          <select id="surroundings-route-source" data-tip="The source whose route is checked" aria-label="Route source"></select>
+          <label data-tip="Width of the corridor along the route, in metres">corridor <input type="number" id="surroundings-corridor" min="10" max="500" value="100"> m</label>
+        </div>
+        <div id="surroundings-status" role="status"></div>
+        <div id="surroundings-nearest"></div>
+        <div class="surroundings-row" id="surroundings-sort-row" hidden><label data-tip="Order of the result list">Sort <select id="surroundings-sort"><option value="distance">by distance</option><option value="passed">by time passed</option></select></label></div>
+        <div id="surroundings-results"></div>
+        <div class="surroundings-row" id="surroundings-actions" hidden>
+          <button type="button" id="surroundings-export-csv" data-tip="Save this result list as CSV (derived, not recorded)">CSV</button>
+          <button type="button" id="surroundings-export-geojson" data-tip="Save this result list as GeoJSON (derived, not recorded)">GeoJSON</button>
+          <button type="button" id="surroundings-clear" data-tip="Forget the centre and the result list">Clear</button>
+          <span class="note">derived, not recorded</span>
+        </div>
+      </div>
+      <details id="places-categories" open>
+        <summary>Categories</summary>
+        <div id="places-summary"><span id="places-selected">0 of 0 categories</span><button type="button" id="places-all" data-tip="Tick every place category">All</button><button type="button" id="places-none" data-tip="Untick every place category">None</button></div>
+        <div id="places-hidden-hint" hidden></div>
+        <div id="places-groups"></div>
+      </details>
+      <div id="places-embedded"></div>
+    </div>
+    <div id="sources-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Sources</strong><button type="button" class="window-close" id="sources-close" data-tip="Close the Sources window">×</button></div>
+      <div id="sources-summary"><span id="sources-selected">0 of 0 sources shown</span><button type="button" id="sources-all" data-tip="Show every source">All</button><button type="button" id="sources-none" data-tip="Hide every source">None</button></div>
+      <div id="sources-list"></div>
+      <p class="note" data-tip="metadata.json keeps the colours of the run.">Show and colour are view choices, not recorded. Hidden sources are left out of layers, exports and print.</p>
+    </div>
+    <div id="crystal-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Crystal ball · estimated search area</strong><button type="button" class="window-close" id="crystal-close" data-tip="Close the crystal ball and clear its drawing">×</button></div>
+      <div id="crystal-notice">
+        <p>The crystal ball estimates where the device is likely to be at a reference time. It uses only the device's own routine: on comparable days (same place, same time of day), where it was the same time later, how far it got, where it went next, how long it stayed and how its silences ended.</p>
+        <p><strong>It is an estimate from the available records, not evidence of where the device is.</strong> Use it only as a starting point for planning a search.</p>
+        <button type="button" id="crystal-acknowledge" data-tip="Confirm the notice and open the estimate">I understand</button>
+      </div>
+      <div id="crystal-controls" hidden>
+        <div class="crystal-row">
+          <label>Source <select id="crystal-source" data-tip="The estimate uses this source's own records only"></select></label>
+        </div>
+        <div class="crystal-row">
+          <span class="datetime-control" id="crystal-reference" data-label="Reference time"></span>
+          <button type="button" id="crystal-now" data-tip="Set the reference time to now">Now</button>
+          <label data-tip="Draw the rings, tendency and candidates on the map"><input type="checkbox" id="crystal-show" checked> Show on map</label>
+          <label id="crystal-recency-option" hidden data-tip="Weight each day by 0.5^(age / 14 days), floor 0.1"><input type="checkbox" id="crystal-recency"> recent days count more (half-life 14 d)</label>
+          <label id="crystal-corridors-option" hidden data-tip="Earlier trips from the place of the last report, grouped by destination"><input type="checkbox" id="crystal-corridors"> Routes from here</label>
+        </div>
+        <div id="crystal-result"></div>
+        <div class="crystal-row crystal-record-row">
+          <button type="button" id="crystal-record" disabled>Record search area</button>
+          <button type="button" id="crystal-download" disabled data-tip="The same search area as a _derived JSON file: not recorded, not hashed">Download (not recorded)</button>
+        </div>
+        <div id="crystal-record-status" role="status"></div>
+        <p class="note">Estimate, not evidence. Only "Record search area" writes to the project (search_areas/, hash chain in records.jsonl).</p>
+      </div>
+    </div>
+    <div id="matrix-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Matrix · visits per place and source</strong><button type="button" class="window-close" id="matrix-close" data-tip="Close the Matrix window">×</button></div>
+      <div id="matrix-summary"><label id="matrix-shared-only-option" data-tip="Only places with visits of at least two shown sources"><input type="checkbox" id="matrix-shared-only"> shared only</label><label id="matrix-tolerance-option" data-tip="Groups stay centres within this distance (view choice; the report keeps the run value)">Tolerance (m) <input type="number" id="matrix-tolerance" min="0" max="3000" step="1"></label><button type="button" id="matrix-tolerance-reset" data-tip="Back to the tolerance of the run">Reset</button><span id="matrix-tolerance-note"></span><span id="matrix-count"></span></div>
+      <p id="matrix-legend" class="matrix-muted"><span class="matrix-hit-key"></span> highlighted: visits of two or more shown sources overlap in time (listed first, then by total dwell)</p>
+      <div id="matrix-table" tabindex="0" aria-label="Presence matrix: places as rows, sources as columns"></div>
+      <div id="matrix-detail" role="status"></div>
+    </div>
+    <div id="help-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Help</strong><button type="button" class="window-close" id="help-close" data-tip="Close the Help window">×</button></div>
+      <div id="help-content"></div>
+    </div>
+    <div id="speed-window" class="floating-window" hidden>
+      <div class="window-title"><strong>Speed · range between two records</strong><button type="button" class="window-close" id="speed-close" data-tip="Close the Speed window and leave the mode">×</button></div>
+      <div id="speed-status" role="status"></div>
+      <div id="speed-figures"></div>
+      <div id="speed-exclusions"></div>
+      <div class="speed-row"><button type="button" id="speed-clear" data-tip="Forget the chosen records">Clear</button><button type="button" id="speed-exclude" aria-pressed="false" disabled data-tip="Exclude mode: click a record between the two ends to leave it out; click it again to take it back">Exclude records</button><button type="button" id="speed-record" disabled data-tip="Choose a range first">Record calculation</button></div>
+      <div id="speed-record-status" role="status"></div>
+      <p class="note">Derived from the records. Recorded only with Record calculation.</p>
+    </div>
+    <div id="neighbour-info" class="floating-window" hidden><div class="window-title"><strong>Neighbours</strong></div><div id="neighbour-info-text"></div></div>
+  </div>
+  <aside id="briefing" hidden></aside>
+</div>
+<section id="timeline" hidden aria-label="Timeline">
+  <div class="timeline-head">
+    <strong>Timeline</strong>
+    <label>Show <select id="timeline-source" data-tip="All sources or one source"></select></label>
+    <span id="timeline-key" class="timeline-key"></span>
+    <button type="button" id="timeline-export-csv" data-tip="Save this timeline's elements as CSV (derived, not recorded)">CSV</button>
+  </div>
+  <div id="timeline-plot" tabindex="0" aria-label="Timeline plot: click or use the arrow keys to move the time cursor"></div>
+  <div id="timeline-tooltip" class="timeline-tooltip" role="status" hidden></div>
+</section><script type="application/json" id="geosnap-data">__PAYLOAD__</script>
+<script>
+__LEAFLET_JS__
+</script>
+<script>
+__HEAT_JS__
+</script>
+<script>
+__GEODESIC_JS__
+</script>
+<script>
+__MAP_CORE_JS__
+</script>
+<script>
+__MAP_ANALYSIS_JS__
+</script>
+<script>
+__MAP_PLACES_JS__
+</script>
+<script>
+__MAP_TOOLS_JS__
+</script>
+<script>
+__MAP_SPEED_JS__
+</script>
+<script>
+__MAP_FORECAST_MODEL_JS__
+</script>
+<script>
+__MAP_CRYSTAL_BALL_JS__
+</script>
+<script>
+__MAP_ONLINE_JS__
+</script>
+<script>
+__MAP_MATRIX_JS__
+</script>
+<script>
+__MAP_HELP_JS__
+</script>
+<script>
+__MAP_TIMELINE_JS__
+</script>
+<script>
+if (!window.GEOSNAP_UNSUPPORTED) { GEOSNAP.start(); }
+</script>
+</body>
+</html>
