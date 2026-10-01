@@ -1,0 +1,429 @@
+/*
+ * Copyright (c) 2026 ot2i7ba
+ * https://github.com/ot2i7ba/
+ * This code is licensed under the MIT License (see LICENSE for details).
+ */
+
+/* Layout rules of every screen. Principles: informational text is as wide as its container
+   and wraps (unbreakable hashes and paths fold), nothing has a fixed height that could clip
+   text, the content area of every screen scrolls vertically, dialogs never exceed the window
+   and keep their buttons docked. The app sets -narrow below 100 columns, else -wide. */
+
+Screen {
+    layout: vertical;
+}
+
+StatusHeader {
+    dock: top;
+    height: 1;
+    background: $primary;
+    color: $text;
+    padding: 0 1;
+    text-style: bold;
+}
+
+#content {
+    padding: 1 2;
+    height: 1fr;
+}
+
+/* Wrapping text: labels are auto-wide by default, which would run off the window. */
+#content > Label,
+#content > Static,
+#file-list Label,
+#project-list Static,
+#verification-report,
+#map-status,
+#confirm-dialog > Label,
+#csv-mapping-body > Label,
+#csv-mapping-body > Static,
+#case-places-dialog > Label,
+#case-places-dialog > Static,
+#csv-check,
+#case-places-feedback,
+.source-file,
+WindowTooSmallScreen Label {
+    width: 1fr;
+    height: auto;
+    text-wrap: wrap;
+    text-overflow: fold;
+}
+
+.heading {
+    text-style: bold;
+}
+
+.instructions {
+    margin-bottom: 1;
+    color: $text 80%;
+}
+
+.section-heading, #sources-title, #settings-title, #verification-title {
+    margin-top: 1;
+}
+
+#processing-title {
+    margin-bottom: 1;
+}
+
+/* File-format help (key H on the file selection) */
+
+/* The example keeps its line breaks and is set apart from the prose above it. */
+.format-help-example {
+    margin: 1 0;
+    padding: 0 1;
+    color: $text 80%;
+}
+
+/* File selection */
+
+/* As tall as its files: the content area scrolls and follows the highlight. */
+#file-list {
+    height: auto;
+}
+
+/* Docked: the typed number stays in view when the list is long. */
+#digit-buffer {
+    dock: bottom;
+    min-height: 1;
+    background: $background;
+    color: $accent;
+}
+
+#empty-hint {
+    color: $warning;
+}
+
+/* Project setup */
+
+#name-feedback {
+    dock: bottom;
+    min-height: 1;
+    background: $background;
+    color: $warning;
+}
+
+#name-feedback.valid {
+    color: $success;
+}
+
+#case-row, #options-row {
+    height: auto;
+}
+
+.-wide #case-row, .-wide #options-row {
+    layout: horizontal;
+}
+
+.case-field, #duplicates-row, #case-places-row {
+    height: auto;
+    min-height: 3;
+}
+
+.-wide .case-field, .-wide #case-places-row {
+    width: 1fr;
+}
+
+.-wide #duplicates-row {
+    width: auto;
+    margin-right: 2;
+}
+
+.case-label, #duplicates-row Label {
+    width: auto;
+    height: 3;
+    padding: 0 1 0 0;
+    content-align: left middle;
+}
+
+.-narrow .case-label {
+    width: 16;
+}
+
+.case-input {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#display-zone-row {
+    height: auto;
+}
+
+#display-zone {
+    width: 40;
+}
+
+#display-zone-confirm-row {
+    height: auto;
+}
+
+#matrix-tolerance-row {
+    height: auto;
+}
+
+#matrix-tolerance {
+    width: 12;
+}
+
+#display-zone-confirm-label {
+    width: 1fr;
+    height: auto;
+    min-height: 3;
+    padding: 0 1 0 0;
+    content-align: left middle;
+    text-wrap: wrap;
+    text-overflow: fold;
+}
+
+#case-places-button {
+    min-width: 16;
+}
+
+#case-places-summary {
+    width: 1fr;
+    height: auto;
+    min-height: 3;
+    padding: 0 1;
+    content-align: left middle;
+    text-overflow: fold;
+}
+
+#source-rows, .source-block {
+    height: auto;
+}
+
+.source-row {
+    height: auto;
+}
+
+.source-label {
+    width: 1fr;
+}
+
+.source-kind {
+    width: 18;
+}
+
+.source-colour {
+    width: 22;
+}
+
+.accuracy-level-row {
+    height: auto;
+}
+
+.accuracy-level-label {
+    width: auto;
+    height: 3;
+    padding: 0 1 0 0;
+    content-align: left middle;
+}
+
+.source-accuracy {
+    width: 33;
+}
+
+.csv-mapping-row {
+    height: auto;
+    min-height: 3;
+}
+
+.source-columns {
+    width: 14;
+    min-width: 14;
+}
+
+.source-mapping {
+    width: 1fr;
+    height: auto;
+    min-height: 3;
+    padding: 0 1;
+    content-align: left middle;
+    text-overflow: fold;
+}
+
+/* Processing */
+
+#phase, #progress, #spinner {
+    margin-bottom: 1;
+}
+
+#spinner {
+    height: 3;
+}
+
+/* Dialogs */
+
+ConfirmCancelScreen, CsvMappingScreen, CasePlacesScreen, WindowTooSmallScreen {
+    align: center middle;
+}
+
+#confirm-dialog {
+    width: 72;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    border: thick $warning;
+    padding: 1 2;
+    background: $surface;
+    overflow-y: auto;
+}
+
+#confirm-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+/* The body scrolls; the check or feedback and the buttons stay docked below it. */
+#csv-mapping-dialog, #case-places-dialog {
+    width: 98;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    border: thick $primary;
+    padding: 0 1;
+    background: $surface;
+}
+
+/* The Columns dialog keeps its footer as a sibling after the body (Tab order); the body
+   takes the height the footer leaves. */
+#csv-mapping-body {
+    height: 1fr;
+}
+
+#csv-mapping-title, #case-places-title {
+    text-style: bold;
+}
+
+/* Short, so the first role fields are in view without scrolling. */
+#csv-preview {
+    height: 6;
+}
+
+.-narrow #csv-preview {
+    height: 4;
+}
+
+#case-places-table {
+    height: 6;
+}
+
+#csv-preview-detail, #case-places-detail, #csv-reasons, .csv-role-note {
+    color: $text 80%;
+}
+
+.csv-role-grid, #case-place-grid {
+    grid-size: 4;
+    grid-rows: 3;
+    height: auto;
+}
+
+.csv-role-grid {
+    grid-columns: 16 1fr 16 1fr;
+}
+
+#case-place-grid {
+    grid-columns: 13 1fr 13 1fr;
+}
+
+/* Time format names with an example and zone names need more than one column. */
+.-wide #csv-time-format, .-wide #csv-zone {
+    column-span: 3;
+}
+
+/* Notes and group titles take a row of their own. */
+.csv-role-note, .csv-role-group {
+    column-span: 4;
+    height: auto;
+    width: 1fr;
+    text-wrap: wrap;
+    text-overflow: fold;
+}
+
+.-narrow .csv-role-note, .-narrow .csv-role-group {
+    column-span: 2;
+}
+
+.csv-role-group {
+    text-style: bold;
+    margin-top: 1;
+}
+
+.-narrow .csv-role-grid, .-narrow #case-place-grid {
+    grid-size: 2;
+    grid-columns: 20 1fr;
+}
+
+.csv-role-label, .case-place-field-label {
+    height: 3;
+    content-align: left middle;
+}
+
+#case-places-file-row {
+    height: 3;
+}
+
+#case-places-file {
+    width: 1fr;
+}
+
+#case-places-footer {
+    dock: bottom;
+}
+
+#csv-mapping-footer, #case-places-footer {
+    height: auto;
+    background: $surface;
+}
+
+/* A long check or refusal scrolls here instead of pushing the buttons away. */
+#case-places-feedback-area {
+    height: auto;
+    max-height: 7;
+}
+
+#csv-check-area {
+    height: auto;
+    max-height: 4;
+}
+
+#csv-check, #case-places-feedback {
+    color: $warning;
+}
+
+#csv-check.valid, #case-places-feedback.valid {
+    color: $success;
+}
+
+#csv-mapping-buttons, #case-places-buttons {
+    height: 3;
+}
+
+#csv-mapping-buttons Button, #case-places-buttons Button {
+    min-width: 8;
+    margin-right: 1;
+}
+
+/* Finished projects */
+
+/* The list scrolls within a few rows so that the verification below stays close. */
+#project-list {
+    height: auto;
+    max-height: 8;
+}
+
+/* Docked: the answer to O is in view wherever the content is scrolled to. */
+#map-status {
+    dock: bottom;
+    background: $background;
+}
+
+/* Window too small */
+
+#too-small-notice {
+    width: 100%;
+    height: auto;
+    border: thick $warning;
+    padding: 0 1;
+    background: $surface;
+}
