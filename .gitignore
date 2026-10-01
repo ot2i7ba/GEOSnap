@@ -1,0 +1,15 @@
+# Case data and results stay local: input files and project output are never committed.
+input/
+output/
+
+# Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# PyInstaller build output
+build/
+dist/

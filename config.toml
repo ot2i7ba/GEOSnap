@@ -1,0 +1,133 @@
+# Copyright (c) 2026 ot2i7ba
+# https://github.com/ot2i7ba/
+# This code is licensed under the MIT License (see LICENSE for details).
+
+# GEOSnap configuration. Edit values here; the application reads this file on start.
+
+[timezone]
+# "local" uses the time zone of this computer. Any IANA name such as "Europe/Berlin" works too.
+display = "local"
+
+[extraction]
+# Bytes read per chunk. Memory use stays constant regardless of file size.
+read_chunk_bytes = 1048576
+# Used when a text input file is not valid UTF-8 and carries no byte-order mark.
+# Text files only; KML uses its XML declaration or byte-order mark.
+fallback_encoding = "cp1252"
+# Default for the "Remove duplicates" switch in the project dialog.
+remove_duplicates = false
+
+[map]
+# Upper bound of points rendered in the HTML map. The CSV export always contains every point.
+point_limit = 50000
+# "online" = tiles from the provider named in tile_provider. Opening the map makes the browser fetch tiles
+# from that provider, which discloses the viewer's IP address and the viewed area to it. The map offers
+# every built-in provider in its "Map style" list; switching there is a viewing choice and is not recorded.
+# "none" = no base map, strictly offline. "local" = tiles from local_tiles_path, offline.
+# "osm" is accepted as an alias for online + tile_provider = "osm-de" and logs a warning.
+tile_source = "online"
+# Start provider for online tiles: osm-de (OpenStreetMap Germany, default), opentopomap, esri-imagery, esri-topo.
+# Only providers that serve tiles without an API key or Referer header are offered; the OpenStreetMap
+# standard server and CARTO are not, because they block maps opened from disk.
+tile_provider = "osm-de"
+# Directory relative to the application root with tiles laid out as {z}/{x}/{y}.png
+local_tiles_path = "tiles"
+# Attribution text required by your tile provider; shown in the map.
+# Rendered as HTML by Leaflet (provider links allowed); only put text you trust here.
+local_tiles_attribution = ""
+local_tiles_max_zoom = 18
+
+[logging]
+# DEBUG, INFO, WARNING, ERROR or CRITICAL
+level = "INFO"
+# Rotation applies to output/GEOSnap.log only; project logs are never rotated.
+max_bytes = 10485760
+backup_count = 5
+
+[analysis]
+# Consecutive points within this radius of the running centre form a stay.
+stop_radius_m = 50
+# Minimum duration for a stay.
+stop_min_minutes = 10
+# Time without any record that counts as a gap.
+gap_min_minutes = 30
+# Points with a larger ± value stay on the map but are excluded from stays, gaps and segments.
+max_accuracy_m = 200
+# Segments faster than this are flagged as implausible (bad data or a second device).
+implausible_speed_kmh = 250
+# Two sources meet when their records lie at most this many minutes apart (1 to 1440) ...
+encounter_max_minutes = 10
+# ... and at most this many metres apart (1 to 50000; or within their combined ± values, if larger).
+# Encounters and shared places are computed only for projects with two or more sources.
+encounter_max_distance_m = 100
+# An encounter of at least 5 minutes whose records moved at least this many metres (100 to
+# 100000) is classed as a joint movement, otherwise as same place.
+encounter_joint_movement_min_m = 500
+# Stay centres within this many metres (0 to 3000) form one row of the presence matrix;
+# shared places on the map keep stop_radius_m. The Matrix window can try other values.
+matrix_tolerance_m = 50
+# Confidence of the accuracy radii used for speed bounds, movement classes, case places and
+# encounters:
+# "p95" scales radii of sources at 68 % or of unknown level to 95 % (factor 1.6215);
+# "reported" uses them as reported. Displays and exports always show the reported value.
+accuracy_confidence = "p95"
+# Positioning methods left out of speeds, stays and encounters (gnss, wifi, cell, network).
+# Such records stay on the map, in the exports and in the case place check; [] keeps all.
+excluded_positioning_methods = ["cell"]
+
+[online]
+# Master switch: false turns off map tiles, Overpass and Nominatim together.
+enabled = true
+# Overpass API: places (police, schools, stations, water, ...) around the last position and stays.
+overpass_endpoint = "https://overpass-api.de/api/interpreter"
+# Endpoint the map's live "Check surroundings" contacts from the browser (empty = the one above).
+# overpass-api.de refuses browser requests without a Referer (HTTP 406). Open the map with
+# O on the summary screen (served from http://127.0.0.1, which sends a Referer) and live
+# checks work with the default. A map opened from disk sends no Referer, so live checks
+# fail there unless this names an instance without that requirement. Such instances
+# (CORS open, tested 2026-09-18) include https://overpass.kumi.systems/api/interpreter
+# (Kumi Systems, operated together with overpass.private.coffee). Choosing one sends the
+# checked areas to that operator.
+overpass_browser_endpoint = ""
+# Tried once by a map opened from disk (double-click) when the endpoint above refuses the live
+# check because the page sends no Referer (overpass-api.de does, HTTP 406). The checked area is
+# then sent to this operator (Private.coffee, public instance listed on the OpenStreetMap wiki).
+# Empty = no fallback; open the map from GEOSnap (summary screen, key O) instead.
+overpass_fallback_endpoint = "https://overpass.private.coffee/api/interpreter"
+# Radius in metres around the last position and each stay (default 250, 50 to 20000).
+# Dense categories are limited to 2000 m, medium ones to 5000 m; beyond that they are skipped
+# with a warning. Sparse categories are queried at every radius.
+overpass_radius_m = 250
+# Place categories for the embedded search, by key. The default subset leaves out the
+# categories that are rarely relevant. All keys, by group:
+#   Safety / authorities: police, emergency_services, justice, surveillance_camera
+#   Health: hospital, pharmacy, social_facility
+#   Education / children: kindergarten, school, playground, sports_facility
+#   Transport: railway_station, transport_stop, railway_line, traffic_signals, fuel_station, parking, airport_harbour
+#   Retail / services: bank_atm, supermarket
+#   Food / lodging: restaurant, nightlife, lodging, camp_shelter
+#   Community: place_of_worship, cemetery
+#   Leisure / outdoor: park, forest
+#   Water / nature: water
+#   Infrastructure / hazard: bridge, hazard_site
+overpass_categories = [
+  "police", "emergency_services", "surveillance_camera",
+  "hospital", "pharmacy", "social_facility",
+  "kindergarten", "school", "playground",
+  "railway_station", "transport_stop", "railway_line", "traffic_signals", "fuel_station",
+  "bank_atm", "supermarket",
+  "lodging", "camp_shelter",
+  "park", "forest",
+  "water",
+  "bridge", "hazard_site",
+]
+overpass_timeout_seconds = 60
+# Nominatim reverse geocoding: addresses for the last position and the longest stays.
+# Every lookup sends that position to nominatim.openstreetmap.org.
+nominatim_enabled = true
+nominatim_endpoint = "https://nominatim.openstreetmap.org/reverse"
+nominatim_max_lookups = 25
+# Address search for case places entered with an address but without coordinates: one
+# request per such place sends its address text to this endpoint (only when Nominatim is
+# enabled). The answer is recorded as "geocoded, not verified by the examiner".
+nominatim_search_endpoint = "https://nominatim.openstreetmap.org/search"
