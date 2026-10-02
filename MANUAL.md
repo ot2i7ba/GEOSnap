@@ -759,3 +759,6 @@ The report and `metadata.json` list every service used during generation, with i
 
 ## Browsers
 The map needs a current browser: Microsoft Edge, Google Chrome, Brave or Firefox. It has been checked in Chromium and Firefox, both opened from disk and served by GEOSnap. Brave's shields may block the background map or live place checks; allow them for the map if needed. Internet Explorer is not supported; it shows a short notice instead of a broken page; the project files remain usable.
+
+## Transparency
+English is not my native language. I used AI-based tools such as DeepL to translate the comments, docstrings, README.md, this MANUAL.md and texts of the application into English. The texts are based on German texts provided by me. In addition, I used the code review feature of Claude (Max plan) with the Fable 5.1 model to review the code.
