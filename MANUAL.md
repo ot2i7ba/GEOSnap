@@ -37,6 +37,7 @@ This manual explains what GEOSnap does and how it does it: which files it reads,
 - [Configuration](#configuration)
 - [Keys](#keys)
 - [Browsers](#browsers)
+- [Transparency](#transparency)
 
 ## Getting started
 GEOSnap is a terminal application. You do not need to type commands: you move with the arrow keys, mark files with Space and confirm with Enter. Every screen lists its keys in the footer.
